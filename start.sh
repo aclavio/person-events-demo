@@ -39,6 +39,7 @@ create table CUSTOMERS (
         club_status VARCHAR(20),
         comments VARCHAR(90),
         zip_code VARCHAR(6),
+        ssn VARCHAR(11),
         create_ts timestamp DEFAULT CURRENT_TIMESTAMP ,
         update_ts timestamp DEFAULT CURRENT_TIMESTAMP
 );
@@ -56,26 +57,26 @@ CREATE FUNCTION update_updated_at_column() RETURNS trigger
 
 CREATE TRIGGER t1_updated_at_modtime BEFORE UPDATE ON CUSTOMERS FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Rica', 'Blaisdell', 'rblaisdell0@rambler.ru', 'Female', 'bronze', 'Universal optimal hierarchy', '62233');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Ruthie', 'Brockherst', 'rbrockherst1@ow.ly', 'Female', 'platinum', 'Reverse-engineered tangible interface', '79529');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Mariejeanne', 'Cocci', 'mcocci2@techcrunch.com', 'Female', 'bronze', 'Multi-tiered bandwidth-monitored capability', '32228');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Hashim', 'Rumke', 'hrumke3@sohu.com', 'Male', 'platinum', 'Self-enabling 24/7 firmware', '1104');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Hansiain', 'Coda', 'hcoda4@senate.gov', 'Male', 'platinum', 'Centralized full-range approach', '3904');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Robinet', 'Leheude', 'rleheude5@reddit.com', 'Female', 'platinum', 'Virtual upward-trending definition', '13494');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Fay', 'Huc', 'fhuc6@quantcast.com', 'Female', 'bronze', 'Operative composite capacity', '15477');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Patti', 'Rosten', 'prosten7@ihg.com', 'Female', 'silver', 'Integrated bandwidth-monitored instruction set', '2808');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Even', 'Tinham', 'etinham8@facebook.com', 'Male', 'silver', 'Virtual full-range info-mediaries', '18438');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Brena', 'Tollerton', 'btollerton9@furl.net', 'Female', 'silver', 'Diverse tangible methodology', '20171');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Alexandro', 'Peeke-Vout', 'apeekevouta@freewebs.com', 'Male', 'gold', 'Ameliorated value-added orchestration', '20553');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Sheryl', 'Hackwell', 'shackwellb@paginegialle.it', 'Female', 'gold', 'Self-enabling global parallelism', '23701');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Laney', 'Toopin', 'ltoopinc@icio.us', 'Female', 'platinum', 'Phased coherent alliance', '28722');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Isabelita', 'Talboy', 'italboyd@imageshack.us', 'Female', 'gold', 'Cloned transitional synergy', '32204');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Rodrique', 'Silverton', 'rsilvertone@umn.edu', 'Male', 'gold', 'Re-engineered static application', '33983');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Clair', 'Vardy', 'cvardyf@reverbnation.com', 'Male', 'bronze', 'Expanded bottom-line Graphical User Interface', '34746');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Brianna', 'Paradise', 'bparadiseg@nifty.com', 'Female', 'bronze', 'Open-source global toolset', '46256');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Waldon', 'Keddey', 'wkeddeyh@weather.com', 'Male', 'gold', 'Business-focused multi-state functionalities', '47272');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Josiah', 'Brockett', 'jbrocketti@com.com', 'Male', 'gold', 'Realigned didactic info-mediaries', '84302');
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code) values ('Anselma', 'Rook', 'arookj@europa.eu', 'Female', 'gold', 'Cross-group 24/7 application', '39532');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Rica', 'Blaisdell', 'rblaisdell0@rambler.ru', 'Female', 'bronze', 'Universal optimal hierarchy', '62233', '000-00-0001', '000-00-0001');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Ruthie', 'Brockherst', 'rbrockherst1@ow.ly', 'Female', 'platinum', 'Reverse-engineered tangible interface', '79529', '000-00-0002');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Mariejeanne', 'Cocci', 'mcocci2@techcrunch.com', 'Female', 'bronze', 'Multi-tiered bandwidth-monitored capability', '32228', '000-00-0003');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Hashim', 'Rumke', 'hrumke3@sohu.com', 'Male', 'platinum', 'Self-enabling 24/7 firmware', '1104', '000-00-0004');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Hansiain', 'Coda', 'hcoda4@senate.gov', 'Male', 'platinum', 'Centralized full-range approach', '3904', '000-00-0005');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Robinet', 'Leheude', 'rleheude5@reddit.com', 'Female', 'platinum', 'Virtual upward-trending definition', '13494', '000-00-0006');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Fay', 'Huc', 'fhuc6@quantcast.com', 'Female', 'bronze', 'Operative composite capacity', '15477', '000-00-0007');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Patti', 'Rosten', 'prosten7@ihg.com', 'Female', 'silver', 'Integrated bandwidth-monitored instruction set', '2808', '000-00-0008');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Even', 'Tinham', 'etinham8@facebook.com', 'Male', 'silver', 'Virtual full-range info-mediaries', '18438', '000-00-0009');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Brena', 'Tollerton', 'btollerton9@furl.net', 'Female', 'silver', 'Diverse tangible methodology', '20171', '000-00-0010');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Alexandro', 'Peeke-Vout', 'apeekevouta@freewebs.com', 'Male', 'gold', 'Ameliorated value-added orchestration', '20553', '000-00-0011');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Sheryl', 'Hackwell', 'shackwellb@paginegialle.it', 'Female', 'gold', 'Self-enabling global parallelism', '23701', '000-00-0012');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Laney', 'Toopin', 'ltoopinc@icio.us', 'Female', 'platinum', 'Phased coherent alliance', '28722', '000-00-0013');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Isabelita', 'Talboy', 'italboyd@imageshack.us', 'Female', 'gold', 'Cloned transitional synergy', '32204', '000-00-0014');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Rodrique', 'Silverton', 'rsilvertone@umn.edu', 'Male', 'gold', 'Re-engineered static application', '33983', '000-00-0015');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Clair', 'Vardy', 'cvardyf@reverbnation.com', 'Male', 'bronze', 'Expanded bottom-line Graphical User Interface', '34746', '000-00-0016');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Brianna', 'Paradise', 'bparadiseg@nifty.com', 'Female', 'bronze', 'Open-source global toolset', '46256', '000-00-0017');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Waldon', 'Keddey', 'wkeddeyh@weather.com', 'Male', 'gold', 'Business-focused multi-state functionalities', '47272', '000-00-0018');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Josiah', 'Brockett', 'jbrocketti@com.com', 'Male', 'gold', 'Realigned didactic info-mediaries', '84302', '000-00-0019');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Anselma', 'Rook', 'arookj@europa.eu', 'Female', 'gold', 'Cross-group 24/7 application', '39532', '000-00-0020');
 
 EOF
 
@@ -181,7 +182,9 @@ CREATE OR REPLACE TABLE customer_table WITH (
     LATEST_BY_OFFSET(AFTER->LAST_NAME) AS last_name,
     LATEST_BY_OFFSET(AFTER->EMAIL) AS email,
     LATEST_BY_OFFSET(AFTER->GENDER) AS gender,
-    LATEST_BY_OFFSET(AFTER->CLUB_STATUS) AS club_status
+    LATEST_BY_OFFSET(AFTER->CLUB_STATUS) AS club_status,
+    LATEST_BY_OFFSET(AFTER->ZIP_CODE) AS zip_code,
+    LATEST_BY_OFFSET(AFTER->SSN) AS ssn
 FROM CUSTOMER_CDC_STREAM
 GROUP BY ROWKEY
 EMIT CHANGES;
@@ -197,7 +200,9 @@ CREATE STREAM customer_changed_club_status WITH (
     ct.email,
     ct.gender,
     ct.club_status,
-    CONCAT(csc.BEFORE->CLUB_STATUS, ' -> ', csc.AFTER->CLUB_STATUS) AS `_metadata_change`
+    ct.zip_code,
+    ct.ssn,
+    CONCAT(csc.BEFORE->CLUB_STATUS, ' -> ', csc.AFTER->CLUB_STATUS) AS _metadata_change
 FROM  CLUB_STATUS_CHANGES csc
 JOIN  CUSTOMER_TABLE ct
 ON ct.ROWKEY = csc.ROWKEY
