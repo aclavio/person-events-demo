@@ -1,0 +1,50 @@
+{
+  "namespace": "io.confluent.demo",
+  "name": "Person",
+  "type": "record",
+  "fields": [
+    {
+      "name": "id",
+      "type": "int"
+    },
+    {
+      "name": "first_name",
+      "type": "string"
+    },
+    {
+      "name": "last_name",
+      "type": "string"
+    },
+    {
+      "default": null,
+      "name": "phone",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "default": null,
+      "name": "home_address",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "default": null,
+      "name": "status",
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    {
+      "name": "modified",
+      "type": {
+        "logicalType": "timestamp-millis",
+        "type": "long"
+      }
+    }
+  ]
+}
