@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "Create Reference table and import data:"
+echo "Create Reference tables and import data:"
 docker exec -i postgres psql -U myuser -d postgres << EOF
 create table ZIPCODE_REF (
         zip_code VARCHAR(6) PRIMARY KEY,
@@ -24,6 +24,16 @@ create table ZIPCODE_REF (
 
 COPY ZIPCODE_REF(zip_code, official_usps_city_name, official_usps_state_code, official_state_name, zcta, zcta_parent, population, density, primary_official_county_code, primary_official_county_name, county_weights, official_county_name, official_county_code, imprecise, military, timezone, geo_point)
 FROM '/tmp/reference-data/georef-united-states-of-america-zc-point@public.csv'
+DELIMITER ';'
+CSV HEADER;
+
+create table DEATH_SOURCE_CODE_REF (
+        code VARCHAR(2) PRIMARY KEY,
+        death_source VARCHAR(100)
+);
+
+COPY DEATH_SOURCE_CODE_REF(code, death_source)
+FROM '/tmp/reference-data/death-source-code.csv'
 DELIMITER ';'
 CSV HEADER;
 EOF
@@ -57,7 +67,7 @@ CREATE FUNCTION update_updated_at_column() RETURNS trigger
 
 CREATE TRIGGER t1_updated_at_modtime BEFORE UPDATE ON CUSTOMERS FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
 
-insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Rica', 'Blaisdell', 'rblaisdell0@rambler.ru', 'Female', 'bronze', 'Universal optimal hierarchy', '62233', '000-00-0001', '000-00-0001');
+insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Rica', 'Blaisdell', 'rblaisdell0@rambler.ru', 'Female', 'bronze', 'Universal optimal hierarchy', '62233', '000-00-0001');
 insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Ruthie', 'Brockherst', 'rbrockherst1@ow.ly', 'Female', 'platinum', 'Reverse-engineered tangible interface', '79529', '000-00-0002');
 insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Mariejeanne', 'Cocci', 'mcocci2@techcrunch.com', 'Female', 'bronze', 'Multi-tiered bandwidth-monitored capability', '32228', '000-00-0003');
 insert into CUSTOMERS (first_name, last_name, email, gender, club_status, comments, zip_code, ssn) values ('Hashim', 'Rumke', 'hrumke3@sohu.com', 'Male', 'platinum', 'Self-enabling 24/7 firmware', '1104', '000-00-0004');
@@ -138,17 +148,44 @@ curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json
         "database.dbname" : "postgres",
         "slot.name": "debezium2",
         "topic.prefix": "reference",
-        "table.include.list": "public.zipcode_ref",
+        "table.include.list": "public.zipcode_ref,public.death_source_code_ref",
 
-        "key.converter" : "io.confluent.connect.avro.AvroConverter",
+        "key.converter" : "org.apache.kafka.connect.json.JsonConverter",
         "key.converter.schema.registry.url": "http://schema-registry:8081",
-        "value.converter" : "io.confluent.connect.avro.AvroConverter",
+        "key.converter.schemas.enable": "false",
+        "value.converter" : "org.apache.kafka.connect.json.JsonConverter",
         "value.converter.schema.registry.url": "http://schema-registry:8081",
+        "value.converter.schemas.enable": "false",
 
         "_comment:": "remove _ to use ExtractNewRecordState smt",
         "transforms": "unwrap",
         "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState"
     }
+}
+EOF
+echo ""
+
+echo "Creating Redis sink connector - reference data"
+curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @- << EOF
+{
+  "name": "redis-sink-json",
+  "config": {
+    "connector.class": "com.github.jcustenborder.kafka.connect.redis.RedisSinkConnector",
+    "tasks.max": "1",
+    "topics": "reference.public.zipcode_ref,reference.public.death_source_code_ref",
+    "redis.hosts": "redis:6379",
+    "redis.command": "JSONSET",
+    "_key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter.schemas.enable": "false",
+    "_transforms": "Cast,Drop",
+    "_transforms.Cast.type": "org.apache.kafka.connect.transforms.Cast\$Key",
+    "_transforms.Cast.spec": "string",
+    "_transforms.Drop.type": "org.apache.kafka.connect.transforms.ReplaceField\$Value",
+    "_transforms.Drop.exclude": "county_weights"
+  }
 }
 EOF
 echo ""

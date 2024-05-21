@@ -1,7 +1,12 @@
 package io.confluent.demo;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.confluent.demo.util.ZipcodeReferenceUtil;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -10,6 +15,7 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.JedisPool;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -25,9 +31,17 @@ public class PersonBuilder implements Runnable {
 
     private Properties config;
     private final KafkaStreams streams;
+    private final JedisPool jedisPool;
+    private ObjectMapper mapper;
+    private ZipcodeReferenceUtil zipcodeUtil;
 
     public PersonBuilder(final Properties config) {
         setConfig(config);
+        jedisPool = new JedisPool(
+                config.getProperty("redis.host"),
+                Integer.parseInt(config.getProperty("redis.port")));
+        mapper = new JsonMapper();
+        zipcodeUtil = new ZipcodeReferenceUtil(jedisPool, mapper);
         streams = new KafkaStreams(getTopology(), config);
     }
 
@@ -36,6 +50,10 @@ public class PersonBuilder implements Runnable {
             throw new RuntimeException("Missing required property ".concat("person.raw.topic"));
         if (!config.containsKey("person.enriched.topic"))
             throw new RuntimeException("Missing required property ".concat("person.enriched.topic"));
+        if (!config.containsKey("redis.host"))
+            throw new RuntimeException("Missing required property ".concat("redis.host"));
+        if (!config.containsKey("redis.port"))
+            throw new RuntimeException("Missing required property ".concat("redis.port"));
         this.config = config;
     }
 
@@ -56,7 +74,12 @@ public class PersonBuilder implements Runnable {
         // TODO app logic
         builder
                 .stream(INPUT_TOPIC, Consumed.with(stringSerde, genericAvroSerde))
-                .peek((key, genericRecord) -> logger.info("got record: [{}]{}", key, genericRecord.toString()));
+                .peek((key, genericRecord) -> logger.info("got record: [{}]{}", key, genericRecord.toString()))
+                .peek((key, genericRecord) -> {
+                    GenericRecord after = (GenericRecord) genericRecord.get("after");
+                    String zipcode = after.get("zip_code").toString();
+                    zipcodeUtil.getZipcodeReference((String) zipcode);
+                });
 
         return builder.build();
     }
