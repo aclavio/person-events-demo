@@ -13,14 +13,18 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.Produced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPool;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 public class PersonBuilder implements Runnable {
@@ -57,12 +61,32 @@ public class PersonBuilder implements Runnable {
         this.config = config;
     }
 
+    public Person cdcToPerson(GenericRecord key, GenericRecord record) {
+        // fetch reference data
+        String zipcode = record.get("brthloclt_cd").toString();
+        JsonNode zipcodeData = zipcodeUtil.getZipcodeReference(zipcode);
+        Person person = Person.newBuilder()
+                .setId(new Random().nextInt())
+                .setSsn(record.get("cossn").toString())
+                .setFirstName(record.get("fnm").toString())
+                .setLastName(record.get("lnm").toString())
+                .setGender(record.get("sex_cd").toString())
+                .setDateOfBirth(LocalDate.ofEpochDay(Integer.parseInt(record.get("dob").toString())))
+                .setZipCode(zipcode)
+                .setCreateTs(Instant.now())
+                .setUpdateTs(Instant.now())
+                .build();
+        return person;
+    }
+
     private Topology getTopology() {
         final String INPUT_TOPIC = config.getProperty("person.raw.topic");
         final String OUTPUT_TOPIC = config.getProperty("person.enriched.topic");
 
         // configure Serdes
         final Serde<String> stringSerde = Serdes.String();
+        final GenericAvroSerde genericKeySerde = new GenericAvroSerde();
+        genericKeySerde.configure((Map)config, true);
         final GenericAvroSerde genericAvroSerde = new GenericAvroSerde();
         genericAvroSerde.configure((Map)config, false);
         final SpecificAvroSerde<Person> personAvroSerde = new SpecificAvroSerde<>();
@@ -73,13 +97,10 @@ public class PersonBuilder implements Runnable {
 
         // TODO app logic
         builder
-                .stream(INPUT_TOPIC, Consumed.with(stringSerde, genericAvroSerde))
+                .stream(INPUT_TOPIC, Consumed.with(genericKeySerde, genericAvroSerde))
                 .peek((key, genericRecord) -> logger.info("got record: [{}]{}", key, genericRecord.toString()))
-                .peek((key, genericRecord) -> {
-                    GenericRecord after = (GenericRecord) genericRecord.get("after");
-                    String zipcode = after.get("zip_code").toString();
-                    zipcodeUtil.getZipcodeReference((String) zipcode);
-                });
+                .mapValues((key, genericRecord) -> cdcToPerson(key, genericRecord))
+                .to(OUTPUT_TOPIC, Produced.with(genericKeySerde, personAvroSerde));
 
         return builder.build();
     }

@@ -182,6 +182,8 @@ services:
       - broker
       - connect
       - ksqldb-server
+    volumes:
+      - ./ksqldb:/tmp/ksqldb
     entrypoint: /bin/sh
     tty: true
 

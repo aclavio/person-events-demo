@@ -12,11 +12,12 @@
       "type": "string"
     },
     {
-      "name": "last_name",
-      "type": "string"
+      "name": "middle_name",
+      "default": null,
+      "type": ["null", "string"]
     },
     {
-      "name": "email",
+      "name": "last_name",
       "type": "string"
     },
     {
@@ -30,6 +31,44 @@
     {
       "name": "ssn",
       "type": "string"
+    },
+    {
+      "name": "date_of_birth",
+      "type": {
+        "logicalType": "date",
+        "type": "int"
+      }
+    },
+    {
+      "name": "date_of_death",
+      "default": null,
+      "type": [
+        "null",
+        {
+          "logicalType": "date",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "name": "birth_location_name",
+      "default": null,
+      "type": ["null", "string"]
+    },
+    {
+      "name": "birth_location_state",
+      "default": null,
+      "type": ["null", "string"]
+    },
+    {
+      "name": "birth_location_country",
+      "default": null,
+      "type": ["null", "string"]
+    },
+    {
+      "name": "birth_location_zipcode",
+      "default": null,
+      "type": ["null", "string"]
     },
     {
       "name": "create_ts",
