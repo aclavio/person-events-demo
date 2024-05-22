@@ -69,7 +69,6 @@ public class PersonBuilder implements Runnable {
         Person.Builder person = Person.newBuilder();
         // build the identity info
         person
-                .setId(new Random().nextInt())
                 .setSsn(record.get("cossn").toString())
                 .setFirstName(record.get("fnm").toString())
                 .setMiddleName(record.get("mnm") != null ? record.get("mnm").toString() : null)
@@ -84,7 +83,8 @@ public class PersonBuilder implements Runnable {
             person
                     .setBirthLocationCountry("United States of America")
                     .setBirthLocationState(zipcodeData.get("official_state_name").toString())
-                    .setBirthLocationName(zipcodeData.get("official_usps_city_name").toString());
+                    .setBirthLocationName(zipcodeData.get("official_usps_city_name").toString())
+                    .setBirthLocationZipcode(zipcode);
         } else {
             // not handled
         }

@@ -4,10 +4,6 @@
   "type": "record",
   "fields": [
     {
-      "name": "id",
-      "type": "int"
-    },
-    {
       "name": "first_name",
       "type": "string"
     },

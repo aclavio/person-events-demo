@@ -110,7 +110,7 @@ CSV HEADER;
 
 EOF
 
-echo "Creating Debezium PostgreSQL source connector - customers"
+echo "Creating Debezium PostgreSQL source connector - persons"
 curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @- << EOF
 {
     "name": "debezium-postgres-cdc-source",
@@ -204,6 +204,9 @@ curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json
 }
 EOF
 echo ""
+
+echo "creating topics"
+docker exec -i broker /bin/kafka-topics --bootstrap-server localhost:9092 --create --topic person.avro --partitions 1 --config "cleanup.policy=compact"
 
 echo "create the streaming apps"
 docker exec -i ksqldb-cli ksql -f /tmp/ksqldb/create-ksql-streams.sql -- http://ksqldb-server:8088
