@@ -25,7 +25,7 @@ public class DeathSourceReferenceUtil {
             jedis.select(1);
             String refdata = jedis.get(mapper.writeValueAsString(new DeathSourceKey(code)));
             JsonNode dsRef = mapper.readTree(refdata);
-            logger.info(dsRef.toPrettyString());
+            logger.debug(dsRef.toPrettyString());
             return dsRef;
         } catch (Exception e) {
             logger.error("Error getting reference data", e);

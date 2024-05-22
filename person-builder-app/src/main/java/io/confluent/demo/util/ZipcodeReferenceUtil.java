@@ -25,7 +25,7 @@ public class ZipcodeReferenceUtil {
             jedis.select(1);
             String refdata = jedis.get(mapper.writeValueAsString(new ZipcodeKey(zipcode)));
             JsonNode zipdata = mapper.readTree(refdata);
-            logger.info(zipdata.toPrettyString());
+            logger.debug(zipdata.toPrettyString());
             return zipdata;
         } catch (Exception e) {
             logger.error("Error getting reference data", e);

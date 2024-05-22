@@ -25,10 +25,6 @@
       "type": "string"
     },
     {
-      "name": "zip_code",
-      "type": "string"
-    },
-    {
       "name": "ssn",
       "type": "string"
     },

@@ -3,6 +3,7 @@ package io.confluent.demo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.confluent.demo.util.DeathSourceReferenceUtil;
 import io.confluent.demo.util.ZipcodeReferenceUtil;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
@@ -38,6 +39,7 @@ public class PersonBuilder implements Runnable {
     private final JedisPool jedisPool;
     private ObjectMapper mapper;
     private ZipcodeReferenceUtil zipcodeUtil;
+    private DeathSourceReferenceUtil dsUtil;
 
     public PersonBuilder(final Properties config) {
         setConfig(config);
@@ -46,6 +48,7 @@ public class PersonBuilder implements Runnable {
                 Integer.parseInt(config.getProperty("redis.port")));
         mapper = new JsonMapper();
         zipcodeUtil = new ZipcodeReferenceUtil(jedisPool, mapper);
+        dsUtil = new DeathSourceReferenceUtil(jedisPool, mapper);
         streams = new KafkaStreams(getTopology(), config);
     }
 
@@ -62,21 +65,34 @@ public class PersonBuilder implements Runnable {
     }
 
     public Person cdcToPerson(GenericRecord key, GenericRecord record) {
-        // fetch reference data
-        String zipcode = record.get("brthloclt_cd").toString();
-        JsonNode zipcodeData = zipcodeUtil.getZipcodeReference(zipcode);
-        Person person = Person.newBuilder()
+        // Build Person entity
+        Person.Builder person = Person.newBuilder();
+        // build the identity info
+        person
                 .setId(new Random().nextInt())
                 .setSsn(record.get("cossn").toString())
                 .setFirstName(record.get("fnm").toString())
+                .setMiddleName(record.get("mnm") != null ? record.get("mnm").toString() : null)
                 .setLastName(record.get("lnm").toString())
                 .setGender(record.get("sex_cd").toString())
-                .setDateOfBirth(LocalDate.ofEpochDay(Integer.parseInt(record.get("dob").toString())))
-                .setZipCode(zipcode)
+                .setDateOfBirth(LocalDate.ofEpochDay(Integer.parseInt(record.get("dob").toString())));
+
+        // fetch location reference data
+        if ("D".equals(record.get("brth_addr_loc_cd").toString())) {
+            String zipcode = record.get("brthloclt_cd").toString();
+            JsonNode zipcodeData = zipcodeUtil.getZipcodeReference(zipcode);
+            person
+                    .setBirthLocationCountry("United States of America")
+                    .setBirthLocationState(zipcodeData.get("official_state_name").toString())
+                    .setBirthLocationName(zipcodeData.get("official_usps_city_name").toString());
+        } else {
+            // not handled
+        }
+
+        person
                 .setCreateTs(Instant.now())
-                .setUpdateTs(Instant.now())
-                .build();
-        return person;
+                .setUpdateTs(Instant.now());
+        return person.build();
     }
 
     private Topology getTopology() {
