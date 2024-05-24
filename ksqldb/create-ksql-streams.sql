@@ -14,24 +14,6 @@ CREATE OR REPLACE STREAM death_reports_cdc_stream WITH (
     KEY_FORMAT = 'AVRO'
 );
 
--- Create person info table for person entities
-CREATE OR REPLACE TABLE person_table WITH (
-    KAFKA_TOPIC = 'person.avro',
-    VALUE_FORMAT = 'AVRO',
-    KEY_FORMAT = 'AVRO'
-);
-
--- Join the death alerts stream with the person info
-CREATE STREAM person_death_alerts WITH (
-    KAFKA_TOPIC = 'person.death.alert.avro',
-    VALUE_FORMAT = 'AVRO',
-    KEY_FORMAT = 'AVRO'
-) AS
-SELECT * FROM DEATH_REPORTS_CDC_STREAM 
-JOIN  PERSON_TABLE 
-ON DEATH_REPORTS_CDC_STREAM.ROWKEY = PERSON_TABLE.ROWKEY
-EMIT CHANGES;
-
 -- CREATE STREAM CLUB_STATUS_CHANGES WITH (
 --     KAFKA_TOPIC='club-status-changes', 
 --     VALUE_FORMAT='AVRO'

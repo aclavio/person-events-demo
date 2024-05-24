@@ -49,6 +49,9 @@ public class ReferenceDataTest {
             JsonNode resp = zipcodeUtil.getZipcodeReference("33556");
             Assertions.assertNotNull(resp);
             Assertions.assertEquals("FL", resp.get("official_usps_state_code").asText());
+            Assertions.assertEquals("Florida", resp.get("official_state_name").asText());
+            Assertions.assertEquals("Odessa", resp.get("official_usps_city_name").asText());
+            Assertions.assertEquals("America/New_York", resp.get("timezone").asText());
         } catch (Exception e) {
             Assertions.fail("ZipcodeReferenceUtil exception");
         }

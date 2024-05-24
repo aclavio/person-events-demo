@@ -64,6 +64,15 @@ public class PersonBuilder implements Runnable {
         this.config = config;
     }
 
+    public String sexCodeToName(String code) {
+        return switch (code.toLowerCase()) {
+            case "m" -> "Male";
+            case "f" -> "Female";
+            case "x" -> "X";
+            default -> "Unknown";
+        };
+    }
+
     public Person cdcToPerson(GenericRecord key, GenericRecord record) {
         // Build Person entity
         Person.Builder person = Person.newBuilder();
@@ -73,7 +82,7 @@ public class PersonBuilder implements Runnable {
                 .setFirstName(record.get("fnm").toString())
                 .setMiddleName(record.get("mnm") != null ? record.get("mnm").toString() : null)
                 .setLastName(record.get("lnm").toString())
-                .setGender(record.get("sex_cd").toString())
+                .setGender(sexCodeToName(record.get("sex_cd").toString()))
                 .setDateOfBirth(LocalDate.ofEpochDay(Integer.parseInt(record.get("dob").toString())));
 
         // fetch location reference data
@@ -82,8 +91,8 @@ public class PersonBuilder implements Runnable {
             JsonNode zipcodeData = zipcodeUtil.getZipcodeReference(zipcode);
             person
                     .setBirthLocationCountry("United States of America")
-                    .setBirthLocationState(zipcodeData.get("official_state_name").toString())
-                    .setBirthLocationName(zipcodeData.get("official_usps_city_name").toString())
+                    .setBirthLocationState(zipcodeData.get("official_state_name").asText())
+                    .setBirthLocationName(zipcodeData.get("official_usps_city_name").asText())
                     .setBirthLocationZipcode(zipcode);
         } else {
             // not handled
