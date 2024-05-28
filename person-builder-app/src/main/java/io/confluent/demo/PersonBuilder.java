@@ -3,6 +3,9 @@ package io.confluent.demo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.confluent.demo.processors.DedupProcessor;
+import io.confluent.demo.processors.DedupProcessorSupplier;
+import io.confluent.demo.util.CompareUtil;
 import io.confluent.demo.util.DeathSourceReferenceUtil;
 import io.confluent.demo.util.ZipcodeReferenceUtil;
 import io.confluent.kafka.streams.serdes.avro.GenericAvroSerde;
@@ -15,6 +18,13 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Produced;
+import org.apache.kafka.streams.processor.api.Processor;
+import org.apache.kafka.streams.processor.api.ProcessorContext;
+import org.apache.kafka.streams.processor.api.ProcessorSupplier;
+import org.apache.kafka.streams.processor.api.Record;
+import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.StoreBuilder;
+import org.apache.kafka.streams.state.Stores;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPool;
@@ -23,9 +33,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 public class PersonBuilder implements Runnable {
@@ -120,11 +131,20 @@ public class PersonBuilder implements Runnable {
         // build the streaming topology
         final StreamsBuilder builder = new StreamsBuilder();
 
-        // TODO app logic
+        //KTable<GenericRecord, GenericRecord> personTable = builder.table(OUTPUT_TOPIC, Consumed.with(genericKeySerde, genericAvroSerde));
+        //KTable<GenericRecord, GenericRecord> personTable = builder.table(OUTPUT_TOPIC, Materialized.as(Stores.persistentKeyValueStore("PersonStore")));
+        //personTable
+        //        .toStream()
+        //        .peek((key, genericRecord) -> logger.info("table update: [{}]{}", key, genericRecord));
+
+        // create new Person values
         builder
                 .stream(INPUT_TOPIC, Consumed.with(genericKeySerde, genericAvroSerde))
                 .peek((key, genericRecord) -> logger.info("got record: [{}]{}", key, genericRecord.toString()))
+                .process(new DedupProcessorSupplier(config))
                 .mapValues((key, genericRecord) -> cdcToPerson(key, genericRecord))
+                .peek((key, personRecord) -> logger.info("got person record: [{}]{} - {}",
+                        key, CompareUtil.computePersonHash(personRecord), personRecord.toString()))
                 .to(OUTPUT_TOPIC, Produced.with(genericKeySerde, personAvroSerde));
 
         return builder.build();

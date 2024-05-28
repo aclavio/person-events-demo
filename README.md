@@ -20,7 +20,8 @@ Initialize data sources and connectors
 
 Start the Kafka Streams application
 
-    person-builder-app/gradlew run
+    cd person-builder-app
+    ./gradlew run
 
 Create the ksqldb applications
 
