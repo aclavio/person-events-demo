@@ -131,20 +131,12 @@ public class PersonBuilder implements Runnable {
         // build the streaming topology
         final StreamsBuilder builder = new StreamsBuilder();
 
-        //KTable<GenericRecord, GenericRecord> personTable = builder.table(OUTPUT_TOPIC, Consumed.with(genericKeySerde, genericAvroSerde));
-        //KTable<GenericRecord, GenericRecord> personTable = builder.table(OUTPUT_TOPIC, Materialized.as(Stores.persistentKeyValueStore("PersonStore")));
-        //personTable
-        //        .toStream()
-        //        .peek((key, genericRecord) -> logger.info("table update: [{}]{}", key, genericRecord));
-
         // create new Person values
         builder
                 .stream(INPUT_TOPIC, Consumed.with(genericKeySerde, genericAvroSerde))
                 .peek((key, genericRecord) -> logger.info("got record: [{}]{}", key, genericRecord.toString()))
-                .process(new DedupProcessorSupplier(config))
                 .mapValues((key, genericRecord) -> cdcToPerson(key, genericRecord))
-                .peek((key, personRecord) -> logger.info("got person record: [{}]{} - {}",
-                        key, CompareUtil.computePersonHash(personRecord), personRecord.toString()))
+                .process(new DedupProcessorSupplier(config))
                 .to(OUTPUT_TOPIC, Produced.with(genericKeySerde, personAvroSerde));
 
         return builder.build();
