@@ -39,6 +39,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
+@SuppressWarnings("unchecked")
 public class PersonBuilder implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(PersonBuilder.class);
@@ -54,13 +55,17 @@ public class PersonBuilder implements Runnable {
 
     public PersonBuilder(final Properties config) {
         setConfig(config);
+        mapper = new JsonMapper();
+        // Redis clients init
         jedisPool = new JedisPool(
                 config.getProperty("redis.host"),
                 Integer.parseInt(config.getProperty("redis.port")));
-        mapper = new JsonMapper();
         zipcodeUtil = new ZipcodeReferenceUtil(jedisPool, mapper);
         dsUtil = new DeathSourceReferenceUtil(jedisPool, mapper);
-        streams = new KafkaStreams(getTopology(), config);
+        // Kafka streams init
+        Topology topology = getTopology();
+        logger.debug(topology.describe().toString());
+        streams = new KafkaStreams(topology, config);
     }
 
     public void setConfig(final Properties config) {
@@ -131,12 +136,17 @@ public class PersonBuilder implements Runnable {
         // build the streaming topology
         final StreamsBuilder builder = new StreamsBuilder();
 
-        // create new Person values
+        // create new Person entities/products
         builder
+                // select data source topic
                 .stream(INPUT_TOPIC, Consumed.with(genericKeySerde, genericAvroSerde))
+                // debug
                 .peek((key, genericRecord) -> logger.info("got record: [{}]{}", key, genericRecord.toString()))
+                // transform raw data into an entity
                 .mapValues((key, genericRecord) -> cdcToPerson(key, genericRecord))
+                // check for and suppress duplicates
                 .process(new DedupProcessorSupplier(config))
+                // stream to the output topic
                 .to(OUTPUT_TOPIC, Produced.with(genericKeySerde, personAvroSerde));
 
         return builder.build();

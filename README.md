@@ -43,3 +43,16 @@ Start the sink connectors
 Remove environment
 
     docker compose down
+
+## Utilities
+
+Start Redis CLI
+
+    docker compose exec redis redis-cli
+
+Inspect Redis Cache (using CLI)
+
+    SELECT 1
+    GET "{\"zip_code\":\"90210\"}"
+    exit
+

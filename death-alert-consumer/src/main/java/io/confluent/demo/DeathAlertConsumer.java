@@ -1,5 +1,8 @@
 package io.confluent.demo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -24,11 +27,14 @@ public class DeathAlertConsumer implements Runnable {
     private final List<String> topics;
     private final CountDownLatch shutdownLatch;
 
+    final ObjectMapper mapper;
+
     public DeathAlertConsumer(Properties config, List<String> topics) {
         // initialize the Kafka Consumer using the properties file
         this.consumer = new KafkaConsumer<>(config);
         this.topics = topics;
         this.shutdownLatch = new CountDownLatch(1);
+        mapper = new JsonMapper();
     }
 
     @Override
@@ -47,7 +53,16 @@ public class DeathAlertConsumer implements Runnable {
                 // application specific processing...
                 records.forEach(record -> {
                     // for demo purposes, just emit a log statement
-                    logger.info("[{}] got record: [{}] {}", record.topic(), record.key(), record.value().toString());
+                    GenericRecord alert = record.value();
+                    logger.info("[{}] got record: [{}] {}", record.topic(), record.key(), alert);
+
+                    if (logger.isDebugEnabled()) {
+                        try {
+                            logger.debug(mapper.readTree(alert.toString()).toPrettyString());
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                 });
 
                 // commit the offsets back to kafka
