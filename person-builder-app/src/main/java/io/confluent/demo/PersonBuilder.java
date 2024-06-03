@@ -17,6 +17,7 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.Named;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.processor.api.Processor;
 import org.apache.kafka.streams.processor.api.ProcessorContext;
@@ -143,9 +144,9 @@ public class PersonBuilder implements Runnable {
                 // debug
                 .peek((key, genericRecord) -> logger.info("got record: [{}]{}", key, genericRecord.toString()))
                 // transform raw data into an entity
-                .mapValues((key, genericRecord) -> cdcToPerson(key, genericRecord))
+                .mapValues((key, genericRecord) -> cdcToPerson(key, genericRecord), Named.as("CDC_TO_PERSON"))
                 // check for and suppress duplicates
-                .process(new DedupProcessorSupplier(config))
+                .process(new DedupProcessorSupplier(config), Named.as("DEDUP_FILTER"))
                 // stream to the output topic
                 .to(OUTPUT_TOPIC, Produced.with(genericKeySerde, personAvroSerde));
 
