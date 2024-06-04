@@ -39,6 +39,30 @@ Start the sink connectors
         3.1) upload connect-configs/person-postgres-sink.json
         3.2) TODO
 
+## Explore
+
+### Enriched Person Entities
+Review the enriched Person data being genereted by the streaming application.  The enriched People entities are published to the `person.avro` topic.  The `person-builder-app` transforms the raw CDC data, joins it with reference data cached in Redis, and generates `Person` entities suitable for sharing across the organization.
+
+### Death Alerts
+Death reports are added to the postgreSQL table `death_reports`.  Adding an entry to this table will trigger the creation of a "Death Alert".  The ksqlDB application will join the new Death Report with the corresponding enriched Person entity, and publish an enriched event for consumption by downstream applications.
+
+Add a Death Report:
+
+    1) Open Adminer: http://localhost:8888
+    2) Login to the postgreSQL database:
+        System: PostgreSQL
+        Server: postgres
+        Username: myuser
+        Password: mypassword
+        Database: postgres
+    3) Select the table "death_reports"
+    4) Select "New item"
+    5) Enter the details of a new death report entry (use a cossn matching a Person from the person_info table)
+    6) Click Save
+
+Review the death alert in Kafka by viewing the contents of the `person.death.alert.avro` topic.
+
 ## Teardown
 Remove environment
 
