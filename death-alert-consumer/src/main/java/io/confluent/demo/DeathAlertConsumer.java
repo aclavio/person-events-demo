@@ -3,6 +3,7 @@ package io.confluent.demo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.confluent.demo.report.DeathReportPdf;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
@@ -62,6 +63,12 @@ public class DeathAlertConsumer implements Runnable {
                         } catch (JsonProcessingException e) {
                             throw new RuntimeException(e);
                         }
+                    }
+
+                    try {
+                        DeathReportPdf.generateDeathReportPdf("%s-%d.pdf".formatted(record.topic(), record.offset()), record.value());
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
                 });
 
