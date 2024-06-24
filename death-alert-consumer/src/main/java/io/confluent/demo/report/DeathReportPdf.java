@@ -1,19 +1,53 @@
 package io.confluent.demo.report;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import io.confluent.demo.util.DeathSourceReferenceUtil;
 import org.apache.avro.generic.GenericRecord;
-import org.apache.fontbox.ttf.TrueTypeFont;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.*;
+import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class DeathReportPdf {
 
-    public static void generateDeathReportPdf(String filename, GenericRecord record) throws IOException {
+    private final JedisPool jedisPool;
+    private ObjectMapper mapper;
+    private DeathSourceReferenceUtil dsUtil;
+
+    public DeathReportPdf(final Properties config) {
+        mapper = new JsonMapper();
+        // Redis clients init
+        jedisPool = new JedisPool(
+                config.getProperty("redis.host"),
+                Integer.parseInt(config.getProperty("redis.port")));
+        dsUtil = new DeathSourceReferenceUtil(jedisPool, mapper);
+    }
+
+    public void generateDeathReportPdf(String filename, GenericRecord record) throws IOException {
+        List<String> lines = new ArrayList<>();
+        lines.add("Death Report");
+        lines.add("Name: %s %s %s".formatted(
+                record.get("FIRST_NAME"),
+                record.get("MIDDLE_NAME"),
+                record.get("LAST_NAME")));
+        lines.add("SSN: %s".formatted(record.get("SSN")));
+        lines.add("DOB: %s".formatted(LocalDate.ofEpochDay(Long.parseLong(record.get("DATE_OF_BIRTH").toString()))));
+        lines.add("DOD: %s".formatted(LocalDate.ofEpochDay(Long.parseLong(record.get("DATE_OF_DEATH").toString()))));
+        lines.add("Death Certificate Number: %s".formatted(record.get("DEATH_CERTIFICATE_NUM")));
+
+
+        String deathSourceCode = record.get("DEATH_SOURCE_CODE").toString();
+        String deathSource = dsUtil.getDeathSourceReference(deathSourceCode).get("death_source").asText();
+        lines.add("Death Source: %s".formatted(deathSource));
+
         try (PDDocument doc = new PDDocument()) {
             PDPage page = new PDPage();
             doc.addPage(page);
@@ -26,29 +60,10 @@ public class DeathReportPdf {
                 contents.newLineAtOffset(100, 700);
                 contents.setLeading(lineHeight);
 
-                contents.showText("Death Report");
-                contents.newLine();
-
-                contents.showText("Name: %s %s %s".formatted(
-                        record.get("FIRST_NAME"),
-                        record.get("MIDDLE_NAME"),
-                        record.get("LAST_NAME")));
-                contents.newLine();
-
-                contents.showText("SSN: %s".formatted(record.get("SSN")));
-                contents.newLine();
-
-                contents.showText("DOB: %s".formatted(LocalDate.ofEpochDay(Long.parseLong(record.get("DATE_OF_BIRTH").toString()))));
-                contents.newLine();
-
-                contents.showText("DOD: %s".formatted(LocalDate.ofEpochDay(Long.parseLong(record.get("DATE_OF_DEATH").toString()))));
-                contents.newLine();
-
-                contents.showText("Death Certificate Number: %s".formatted(record.get("DEATH_CERTIFICATE_NUM")));
-                contents.newLine();
-
-                contents.showText("Death Source: %s".formatted(record.get("DEATH_SOURCE_CODE")));
-                contents.newLine();
+                for (String line : lines) {
+                    contents.showText(line);
+                    contents.newLine();
+                }
 
                 contents.endText();
             }

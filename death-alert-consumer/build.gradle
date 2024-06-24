@@ -24,6 +24,7 @@ dependencies {
     implementation 'io.confluent:monitoring-interceptors:7.5.1'
 
     implementation 'org.apache.pdfbox:pdfbox:3.0.2'
+    implementation 'redis.clients:jedis:5.1.2'
 
     implementation 'org.slf4j:slf4j-api:1.7.36'
     implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.17.2'

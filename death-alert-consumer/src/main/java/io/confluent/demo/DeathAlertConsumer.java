@@ -29,6 +29,7 @@ public class DeathAlertConsumer implements Runnable {
     private final CountDownLatch shutdownLatch;
 
     final ObjectMapper mapper;
+    final DeathReportPdf deathReportPdf;
 
     public DeathAlertConsumer(Properties config, List<String> topics) {
         // initialize the Kafka Consumer using the properties file
@@ -36,6 +37,7 @@ public class DeathAlertConsumer implements Runnable {
         this.topics = topics;
         this.shutdownLatch = new CountDownLatch(1);
         mapper = new JsonMapper();
+        deathReportPdf = new DeathReportPdf(config);
     }
 
     @Override
@@ -66,7 +68,7 @@ public class DeathAlertConsumer implements Runnable {
                     }
 
                     try {
-                        DeathReportPdf.generateDeathReportPdf("%s-%d.pdf".formatted(record.topic(), record.offset()), record.value());
+                        deathReportPdf.generateDeathReportPdf("%s-%d.pdf".formatted(record.topic(), record.offset()), record.value());
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
