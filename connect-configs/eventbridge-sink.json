@@ -1,0 +1,16 @@
+{
+    "name": "clavio-eventbridge-connector",
+    "config": {
+        "auto.offset.reset": "earliest",
+        "connector.class": "software.amazon.event.kafkaconnector.EventBridgeSinkConnector",
+        "topics": "person.death.alert.avro",
+        "aws.eventbridge.connector.id": "clavio-eventbridge-connector",
+        "aws.eventbridge.eventbus.arn": "arn:aws:events:us-east-1:995646271469:event-bus/default",
+        "aws.eventbridge.region": "us-east-1",
+        "key.converter": "io.confluent.connect.avro.AvroConverter",
+        "key.converter.schema.registry.url": "http://schema-registry:8081",
+        "value.converter": "io.confluent.connect.avro.AvroConverter",
+        "value.converter.schema.registry.url": "http://schema-registry:8081",
+        "value.converter.schemas.enable": false
+    }
+}
