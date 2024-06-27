@@ -142,6 +142,8 @@ services:
       CONNECT_LOG4J_APPENDER_STDOUT_LAYOUT_CONVERSIONPATTERN: "[%d] %p %X{connector.context}%m (%c:%L)%n"
       ###########################################################
       CONNECT_PLUGIN_PATH: /usr/share/confluent-hub-components
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
 
   ksqldb-server:
     image: confluentinc/cp-ksqldb-server:7.5.1
