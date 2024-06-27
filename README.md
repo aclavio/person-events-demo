@@ -6,6 +6,7 @@ Demonstrates serveral capabilities:
 - Syncing reference data with an external cache
 - Joining CDC events with business entities to form composite events
 - Multiple consumers of the composite events
+- Deduplication with a Kafka Streams processor
 
 ![Demo Workflow](Person-Alerts-Demo.png)
 
